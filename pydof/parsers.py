@@ -49,7 +49,7 @@ cache = CacheManager(**parse_cache_config_options(cache_opts))
 
 class T4TParser(Parser):
 	def __init__(self):
-		self.__xml_cache = cache.get_cache("usage_xml", type='file', expiry=3600)
+		self.__xml_cache = cache.get_cache("usage_xml", type='file', expire=3600)
 
 	def get_usage(self, username, password):
 		from suds.client import Client, SimClient
