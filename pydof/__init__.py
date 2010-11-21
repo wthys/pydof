@@ -18,9 +18,12 @@
 version = '0.1a'
 
 from pydof.parsers import T4TParser
+from pydof.config import Config
 
 Parser = T4TParser
 
 if __name__ == "__main__":
 	t4t = Parser()
-	usage = t4t.get_usage("t395897","mar820")
+	config = Config()
+	config.read()
+	usage = t4t.get_usage(config.username(), config.password())
