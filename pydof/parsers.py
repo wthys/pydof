@@ -16,10 +16,15 @@
 # along with pydof.  If not, see <http://www.gnu.org/licenses/>.
 
 class Parser:
+	"""
+	Non-functional parser. Use this as a basis to implements your own parser."
+	"""
 	def get_usage(self, username, password):
-		pass
+		"""Return the usage for the current billing period"""
+		raise NotImplemented()
 	def clear_cache(self):
-		pass
+		"""Clear the cache"""
+		raise NotImplemented()
 
 class AuthenticationError(Exception):
 	def __init__(self, value):
@@ -44,6 +49,7 @@ cache_opts = {
 cache = CacheManager(**parse_cache_config_options(cache_opts))
 
 class T4TParser(Parser):
+	"""Parser for the Telemeter4Tools API."""
 	def __init__(self):
 		self.__xml_cache = cache.get_cache("usage_xml", type='file', expire=3600)
 
