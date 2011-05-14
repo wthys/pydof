@@ -17,12 +17,14 @@
 
 import os.path
 
+from xdg import BaseDirectory as basedir
+
 from ConfigParser import SafeConfigParser, NoSectionError, NoOptionError, Error
 
 class Config:
-	DEFAULTPATH = os.path.expanduser('~/.pydofrc')
+	DEFAULTPATH = os.path.join(basedir.xdg_config_home, "pydof", "pydof.rc")
 	def __init__(self):
-		defaults = { "verbose": False, "username": "", "password":"" }
+		defaults = { "verbose": False }
 		self.__parser = SafeConfigParser(defaults)
 	
 	def read(self,filename = None):
@@ -33,6 +35,7 @@ class Config:
 	
 	def write(self,filename = None):
 		if filename is None:
+			basedir.save_config_path("pydof")
 			self.write(Config.DEFAULTPATH)
 		else:
 			with open(filename, 'w') as configfile:
@@ -40,19 +43,19 @@ class Config:
 
 	def username(self, value = None):
 		if value is None:
-			return self.__parser.get('DEFAULT','username')
+			return self.__parser.get('auth','username')
 		else:
-			self.__parser.set('DEFAULT','username',value)
+			self.__parser.set('auth','username',value)
 
 	def password(self, value = None):
 		if value is None:
-			return self.__parser.get('DEFAULT','password')
+			return self.__parser.get('auth','password')
 		else:
-			self.__parser.set('DEFAULT','password',value)
+			self.__parser.set('auth','password',value)
 
 	def verbose(self, value = None):
 		if value is None:
-			return self.__parser.get('DEFAULT','verbose')
+			return self.__parser.get('config','verbose')
 		else:
-			self.__parser.set('DEFAULT','verbose',value)
+			self.__parser.set('config','verbose',value)
 	
