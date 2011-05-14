@@ -29,12 +29,8 @@ class AuthenticationError(Exception):
 
 WSDL = "https://t4t.services.telenet.be/TelemeterService.wsdl"
 
-import os
-try:
-    username = os.environ['USER']
-except KeyError:
-    username = os.path.basename(os.environ['HOME'])
-CACHE = '/tmp/telemeter_%s' % username
+from xdg import BaseDirectory as basedir
+CACHE = "%s/pydof" % basedir.xdg_cache_home
 
 from beaker.cache import CacheManager
 from beaker.util import parse_cache_config_options
@@ -54,6 +50,7 @@ class T4TParser(Parser):
 	def get_usage(self, username, password):
 		from suds.client import Client, SimClient
 		soap = Client(WSDL)
+		soap.wsdl.services[0].setlocation(".".join(WSDL.split('.')[:-1]))
 		try:
 			pwd = self.__xml_cache.get("password")
 			usr = self.__xml_cache.get("username")
