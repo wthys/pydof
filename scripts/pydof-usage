@@ -1,0 +1,62 @@
+#!/usr/bin/env python
+
+from pydof.parsers import T4TParser as Parser
+from pydof.config import Config
+
+from datetime import date
+from argparse import ArgumentParser
+
+if __name__ == "__main__":
+
+	parser = ArgumentParser("Prints out the usage for this billing period "
+			"on a day by day basis")
+	parser.add_argument("-s","--simple"
+			, action="store_const"
+			, const=True
+			, dest="simple"
+			, default=False
+			, help="print out the usage in a machine readable form "
+			"`<date>:<usage>:<total>' with <date> and <usage> being "
+			"the date and usage for a specific day and <total> being "
+			"the running total up to that day.")
+	parser.add_argument("-f","--format"
+			, action="store"
+			, default="%Y-%m-%d"
+			, dest="format"
+			, help="use this format for the date. The formatting "
+			"follows strftime formatting and defaults to `%%Y-%%m-%%d'.")
+
+	opts = parser.parse_args()
+
+	# Create a new parser
+	telemeter = Parser()
+
+	# Read the configuration
+	config = Config()
+	config.read()
+
+	# Fetch the usage
+	usage = telemeter.get_usage(config.username(), config.password())
+
+	# The total bandwidth usage for this billing period
+	total = 0
+
+	# The days left until reset
+	today = date.today()
+
+	unit = usage.Volume.Unit
+
+	formatted_str = ""
+	if opts.simple:
+		formatted_str = "%(date)s:%(usage)d:%(total)d"
+	else:
+		formatted_str = "%(date)-15s| %(usage)7d %(unit)s | %(total)8d %(unit)s"
+
+	for day_data in usage.Volume.DailyUsageList.DailyUsage:
+		day_usage = day_data.Usage
+		day_date  = day_data.Day
+		total    += day_usage
+		print formatted_str % {"date": day_date.strftime(opts.format),
+				"usage":day_usage, "total": total, "unit":unit}
+		if day_date == today:
+			break

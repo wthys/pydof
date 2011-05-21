@@ -1,0 +1,83 @@
+#!/usr/bin/env python
+
+from pydof.parsers import T4TParser as Parser
+from pydof.config import Config
+
+from datetime import date
+from argparse import ArgumentParser
+
+if __name__ == "__main__":
+
+	parser = ArgumentParser("Prints out the usage of your Telenet bandwidth usage")
+	parser.add_argument("-s","--simple"
+			, action="store_const"
+			, const=True
+			, dest="simple"
+			, default=False
+			, help="print out the usage in a machine"
+			" readable form `<usage>:<limit>:<daysleft>'")
+	parser.add_argument("-p","--percent"
+			, action="store_const"
+			, const=True
+			, dest="percent"
+			, default=False
+			, help="also show the usage as a percentage. When "
+			"combined with -s, the last field is the percentage")
+	parser.add_argument("-r","--remaining"
+			, action='store_const'
+			, const=True
+			, dest="remaining"
+			, default=False
+			, help="also show the remaining bandwidth. When "
+			"combined with -s, this field follows the <usage> "
+			"field")
+
+	opts = parser.parse_args()
+
+	# Create a new parser
+	telemeter = Parser()
+
+	# Read the configuration
+	config = Config()
+	config.read()
+
+	# Fetch the usage
+	usage = telemeter.get_usage(config.username(), config.password())
+
+	# The maximum allowed bandwidth usage
+	limit = usage.Volume.Limit
+
+	# The total bandwidth usage for this billing period
+	total = usage.Volume.TotalUsage
+
+	# the unit in which the usage is delivered (MB, GB ...)
+	unit = usage.Volume.Unit
+
+	# The days left until reset
+	days_left = (usage.Volume.DailyUsageList.DailyUsage[-1].Day - date.today()).days + 1
+
+	formatted_str = ""
+	if opts.simple:
+		formatted_str = "%(usage)d"
+		if opts.remaining:
+			formatted_str += ":%(remaining)d"
+		formatted_str += ":%(limit)d"
+		formatted_str += ":%(days)d"
+		if opts.percent:
+			formatted_str += ":%(percent).2f"
+	else:
+		formatted_str  = "You used %(usage)d %(unit)s "
+		formatted_str += "of the available %(limit)d %(unit)s "
+		if opts.percent:
+			formatted_str += "(%(percent).2f%%) "
+		formatted_str += "with %(days)d days "
+		if opts.remaining:
+			formatted_str += "and %(remaining)d %(unit)s "
+		formatted_str += "left until the next reset" 
+		
+	print formatted_str % {"usage":total
+			, "limit":limit
+			, "days":days_left
+			, "unit": unit
+			, "percent": (100. * total) /limit 
+			, "remaining": limit - total }

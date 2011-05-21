@@ -22,8 +22,3 @@ from pydof.config import Config
 
 Parser = T4TParser
 
-if __name__ == "__main__":
-	t4t = Parser()
-	config = Config()
-	config.read()
-	usage = t4t.get_usage(config.username(), config.password())
